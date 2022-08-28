@@ -29,6 +29,8 @@
 #include "spi.h"
 
 
+#define spi_port    hspi5
+
 
 #define W25Q256FV_FLASH_SIZE                  0x2000000 /* 256 MBits => 32MBytes */
 #define W25Q256FV_BLOCK_SIZE                  0x10000   /* 512 sectors of 64KBytes */
@@ -56,12 +58,13 @@
 
 /* Identification Operations */
 #define READ_ID_CMD                          0x90
+#define DEVICE_ID_CMD                        0xAB
 #define DUAL_READ_ID_CMD                     0x92
 #define QUAD_READ_ID_CMD                     0x94
 #define READ_JEDEC_ID_CMD                    0x9F
 
 /* Read Operations */
-#define READ_CMD                             0x03
+#define READ_CMD                             0x13
 #define READ_4BTYEADDR_CMD                   0x13
 #define FAST_READ_CMD                        0x0B
 #define DUAL_OUT_FAST_READ_CMD               0x3B
@@ -84,14 +87,14 @@
 
 
 /* Program Operations */
-#define PAGE_PROG_CMD                        0x02
+#define PAGE_PROG_CMD                        0x12
 #define QUAD_INPUT_PAGE_PROG_CMD             0x32
 
 
 /* Erase Operations */
 #define SECTOR_ERASE_CMD                     0x20
 #define BLOCK_ERASE_CMD                      0xD8
-#define CHIP_ERASE_CMD                       0xC7
+#define CHIP_ERASE_CMD                       0x60
 
 #define PROG_ERASE_RESUME_CMD                0x7A
 #define PROG_ERASE_SUSPEND_CMD               0x75
@@ -106,8 +109,7 @@
 #define W25Q256FV_FSR_QE                      ((uint8_t)0x02)    /*!< quad enable */
 
 
-#define W25Q256_Enable() 			        HAL_GPIO_WritePin(W25Q256_CE_GPIO_Port, W25Q256_CE_Pin, GPIO_PIN_RESET)
-#define W25Q256_Disable() 		            HAL_GPIO_WritePin(W25Q256_CE_GPIO_Port, W25Q256_CE_Pin, GPIO_PIN_SET)
+
 
 #define W25Q256_OK                          ((uint8_t)0x00)
 #define W25Q256_ERROR                       ((uint8_t)0x01)
@@ -115,12 +117,25 @@
 #define W25Q256_TIMEOUT				        ((uint8_t)0x03)
 
 
-
+#define W25Q256_Enable() 			        HAL_GPIO_WritePin(W25Q256_CE_GPIO_Port, W25Q256_CE_Pin, GPIO_PIN_RESET)
+#define W25Q256_Disable() 		            HAL_GPIO_WritePin(W25Q256_CE_GPIO_Port, W25Q256_CE_Pin, GPIO_PIN_SET)
 uint8_t W25Q256_Init(void);
 uint8_t W25Q256_Reset(void);
+
 uint8_t W25Q256_GetStatus(void);
+uint8_t W25Q256_Enter4ByteAddressMode(void);
+uint8_t W25Q256_Exit4ByteAddressMode(void);
+uint8_t W25Q256_WriteEnable(void);
+HAL_StatusTypeDef W25Q256_Read_ID(uint8_t *ID);
+
+uint8_t W25Q256_Device_ID(void);
 
 
+uint8_t W25Q256_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size);
+uint8_t W25Q256_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size);
+uint8_t W25Q256_Erase_Sector(uint32_t Address);
+uint8_t W25Q256_Erase_Block(uint32_t Address);
+uint8_t W25Q256_Erase_Chip(void);
 
 
 

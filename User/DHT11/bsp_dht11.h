@@ -56,9 +56,9 @@ typedef struct
 
 
 
-#define DHT11_Read_DATA()   HAL_GPIO_ReadPin(GPIOF, DHT11_DATA_Pin)
-#define DHT11_DATA_SET()    HAL_GPIO_WritePin(GPIOF, DHT11_DATA_Pin, GPIO_PIN_SET)
-#define DHT11_DATA_RESET()  HAL_GPIO_WritePin(GPIOF, DHT11_DATA_Pin, GPIO_PIN_RESET)
+#define DHT11_Read_DATA()   HAL_GPIO_ReadPin(DHT11_DATA_GPIO_Port, DHT11_DATA_Pin)
+#define DHT11_DATA_SET()    HAL_GPIO_WritePin(DHT11_DATA_GPIO_Port, DHT11_DATA_Pin, GPIO_PIN_SET)
+#define DHT11_DATA_RESET()  HAL_GPIO_WritePin(DHT11_DATA_GPIO_Port, DHT11_DATA_Pin, GPIO_PIN_RESET)
 void DHT11_Pin_Mode(uint8_t mode);
 uint8_t DHT11_Read_Byte(void);
 uint8_t DHT11_Read_Temperature_and_Humidity(DHT11_DATA_TypeDef *DHT11_data);

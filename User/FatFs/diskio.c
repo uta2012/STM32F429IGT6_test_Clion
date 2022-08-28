@@ -53,6 +53,7 @@ DSTATUS disk_status (
 
 		return stat;
 #endif
+#ifdef DEV_FLASH
     case DEV_FLASH :
         //result = USB_disk_status();
         // translate the reslut code here
@@ -60,7 +61,7 @@ DSTATUS disk_status (
 
 
         return stat;
-
+#endif
     }
 
 	return STA_NOINIT;
@@ -283,12 +284,12 @@ DRESULT disk_ioctl (
 DWORD get_fattime (void)
 {
 
-    return  (DWORD)((2022-1980) << 25) |
-            (DWORD)(1 << 21) |
-            (DWORD)(1 << 16) |
-            (DWORD)(1 << 11) |
-            (DWORD)(1 << 5) |
-            (DWORD)(1);
+    return  (DWORD)((2022-1980) << 25) |    //年
+            (DWORD)(1 << 21) |              //月
+            (DWORD)(1 << 16) |              //日
+            (DWORD)(1 << 11) |              //时
+            (DWORD)(1 << 5) |               //分
+            (DWORD)(1);                     //秒
 }
 
 

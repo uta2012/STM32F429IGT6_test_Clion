@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -90,14 +90,26 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
-  MX_SPI1_Init();
+  MX_SPI5_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
   LED_Init();
   RetargetInit(&huart1);
 
+  DHT11_DATA_TypeDef DHT11_data = {0};
+
+  W25Q256_Init();
+  W25Q256_Erase_Sector(50);
 
 
-    DHT11_DATA_TypeDef DHT11_data = {0};
+  uint8_t data[] = "hello world!";
+  printf("data[] = %s\n", data);
+  W25Q256_Write(data, 50, 13);
+  uint8_t data_r[13] = {0};
+  W25Q256_Read(data_r, 50, 13);
+  printf("data_r = %s\n", data_r);
+
+
 
   printf("\r\nenter Infinite loop...\r\n");
   /* USER CODE END 2 */
@@ -110,9 +122,8 @@ int main(void)
       printf("Temperature:%0.1f °C\n", DHT11_data.temperature);
       printf("Humidity:%0.1f %%\n\n", DHT11_data.humidity);
 
-      HAL_Delay(1000);
-      HAL_Delay(1000);
-      HAL_Delay(1000);
+      HAL_Delay(5000);
+
 
     /* USER CODE END WHILE */
 

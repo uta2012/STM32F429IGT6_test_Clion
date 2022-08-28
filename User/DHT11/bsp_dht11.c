@@ -47,7 +47,7 @@ void DHT11_Pin_Mode(uint8_t mode)
         DHT11_Pin_InitStruct.Pin = DHT11_DATA_Pin;
         DHT11_Pin_InitStruct.Mode = GPIO_MODE_INPUT;
         DHT11_Pin_InitStruct.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOF, &DHT11_Pin_InitStruct);
+        HAL_GPIO_Init(DHT11_DATA_GPIO_Port, &DHT11_Pin_InitStruct);
     }
     else
     {
@@ -55,7 +55,7 @@ void DHT11_Pin_Mode(uint8_t mode)
         DHT11_Pin_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
         DHT11_Pin_InitStruct.Pull = GPIO_NOPULL;
         DHT11_Pin_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        HAL_GPIO_Init(GPIOF, &DHT11_Pin_InitStruct);
+        HAL_GPIO_Init(DHT11_DATA_GPIO_Port, &DHT11_Pin_InitStruct);
     }
 }
 

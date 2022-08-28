@@ -37,6 +37,7 @@ extern "C" {
 #include "bsp_usart1.h"
 #include "bsp_at24c0x.h"
 #include "bsp_dht11.h"
+#include "bsp_w25q256.h"
 
 /* USER CODE END Includes */
 
@@ -63,11 +64,11 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define DHT11_DATA_Pin GPIO_PIN_2
+#define DHT11_DATA_GPIO_Port GPIOE
 #define SW3_Pin GPIO_PIN_13
 #define SW3_GPIO_Port GPIOC
 #define SW3_EXTI_IRQn EXTI15_10_IRQn
-#define DHT11_DATA_Pin GPIO_PIN_1
-#define DHT11_DATA_GPIO_Port GPIOF
 #define W25Q256_CE_Pin GPIO_PIN_6
 #define W25Q256_CE_GPIO_Port GPIOF
 #define SW1_Pin GPIO_PIN_0
