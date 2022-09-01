@@ -22,11 +22,12 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
+#include "fmc.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
-
+#include "ff.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,22 +93,60 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI5_Init();
   MX_I2C2_Init();
+  MX_FMC_Init();
   /* USER CODE BEGIN 2 */
   LED_Init();
   RetargetInit(&huart1);
 
   DHT11_DATA_TypeDef DHT11_data = {0};
 
-  W25Q256_Init();
-  W25Q256_Erase_Sector(50);
+//  W25Q256_Init();
+//  W25Q256_Erase_Sector(170);
+//
+//
+//  uint8_t data[] = "123456789as!";
+//  printf("data[] = %s\n", data);
+//  W25Q256_Write(data, 170, 13);
+//  uint8_t data_r[13] = {0};
+//  W25Q256_Read(data_r, 170, 13);
+//  printf("data_r = %s\n", data_r);
 
 
-  uint8_t data[] = "hello world!";
-  printf("data[] = %s\n", data);
-  W25Q256_Write(data, 50, 13);
-  uint8_t data_r[13] = {0};
-  W25Q256_Read(data_r, 50, 13);
-  printf("data_r = %s\n", data_r);
+
+  printf("%X\n", W25Q256_JEDEC_ID());
+
+
+
+
+  BYTE work[FF_MAX_SS];
+  FATFS FatFs;   /* Work area (filesystem object) for logical drive */
+  FRESULT res;
+
+
+
+
+
+  res = f_mkfs("3:", 0, work, sizeof work);
+  if(res != FR_OK)
+  {
+      printf("mkfs fail!\n");
+      printf("code : %d\n", res);
+  }
+  else
+  {
+      printf("mkfs ok!\n");
+  }
+
+    res = f_mount(&FatFs, "3:", 1);
+    if(res != FR_OK)
+    {
+        printf("mount fail!\n");
+        printf("code : %d\n", res);
+    }
+    else
+    {
+        printf("mount ok!\n");
+    }
 
 
 
@@ -118,9 +157,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      DHT11_Read_Temperature_and_Humidity(&DHT11_data);
-      printf("Temperature:%0.1f °C\n", DHT11_data.temperature);
-      printf("Humidity:%0.1f %%\n\n", DHT11_data.humidity);
+//      DHT11_Read_Temperature_and_Humidity(&DHT11_data);
+//      printf("Temperature:%0.1f °C\n", DHT11_data.temperature);
+//      printf("Humidity:%0.1f %%\n\n", DHT11_data.humidity);
 
       HAL_Delay(5000);
 

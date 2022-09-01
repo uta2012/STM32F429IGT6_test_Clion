@@ -9,12 +9,14 @@
 
 #include "ff.h"			/* Obtains integer types */
 #include "diskio.h"		/* Declarations of disk functions */
+#include "bsp_w25q256.h"
+
 
 /* Definitions of physical drive number for each drive */
 //#define DEV_RAM		0	/* Example: Map Ramdisk to physical drive 0 */
 //#define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
 //#define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
-#define DEV_FLASH		3	/* Example: Map FLASH to physical drive 0 */
+#define DEV_FLASH		3	/* Example: Map FLASH to physical drive 3 */
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -57,8 +59,10 @@ DSTATUS disk_status (
     case DEV_FLASH :
         //result = USB_disk_status();
         // translate the reslut code here
-
-
+        if(sFLASH_ID != W25Q256_JEDEC_ID())
+            stat = RES_ERROR;
+        else
+            stat = RES_OK;
 
         return stat;
 #endif
@@ -105,6 +109,21 @@ DSTATUS disk_initialize (
 		// translate the reslut code here
 
 		return stat;
+#endif
+#ifdef DEV_FLASH
+        case DEV_FLASH :
+            // translate the reslut code here
+
+            W25Q256_Erase_Chip();
+            result = W25Q256_Init();
+            HAL_Delay(500);
+            W25Q256_WAKEUP();
+            if(result == W25Q256_OK)
+                stat = RES_OK;
+            else
+                stat = RES_ERROR;
+
+            return stat;
 #endif
 	}
 	return STA_NOINIT;
@@ -159,10 +178,12 @@ DRESULT disk_read (
 #endif
     case DEV_FLASH :
         // translate the arguments here
-
-        //result = FLASH_disk_read(buff, sector, count);
-
+        result = W25Q256_Read(buff, sector*4096, count*4096);;
         // translate the reslut code here
+            if(result == W25Q256_OK)
+                res = RES_OK;
+            else
+                res = RES_ERROR;
 
         return res;
 	}
@@ -178,6 +199,8 @@ DRESULT disk_read (
 
 #if FF_FS_READONLY == 0
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
 DRESULT disk_write (
 	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
 	const BYTE *buff,	/* Data to be written */
@@ -221,17 +244,20 @@ DRESULT disk_write (
 #endif
     case DEV_FLASH :
         // translate the arguments here
-
-        //result = FLASH_disk_write(buff, sector, count);
-
+        //W25Q256_Erase_Sector(sector*4069);
+        result = W25Q256_Write((BYTE*)buff, sector*4069, count*4096);
         // translate the reslut code here
+         if(result == W25Q256_OK)
+             res = RES_OK;
+         else
+             res = RES_ERROR;
 
         return res;
-
 	}
 
 	return RES_PARERR;
 }
+
 
 #endif
 
@@ -272,8 +298,21 @@ DRESULT disk_ioctl (
 		return res;
 #endif
     case DEV_FLASH :
-
         // Process of the command the USB drive
+        switch(cmd)
+        {
+            case GET_SECTOR_COUNT:
+                *(DWORD*)buff = 4096;
+                break;
+            case GET_SECTOR_SIZE:
+                *(DWORD*)buff = 4096;
+                break;
+            case GET_BLOCK_SIZE:
+                *(DWORD*)buff = 1;
+                break;
+        }
+        
+        res = RES_OK;
 
         return res;
 	}

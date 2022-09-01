@@ -35,9 +35,11 @@
 uint8_t W25Q256_Init(void)
 {
     uint8_t res = 0;
-    W25Q256_Reset();
     res = W25Q256_Enter4ByteAddressMode();
-    return res;
+    if(res == W25Q256_OK)
+        return W25Q256_OK;
+    else
+        return W25Q256_ERROR;
 }
 
 
@@ -104,7 +106,6 @@ uint8_t W25Q256_Enter4ByteAddressMode(void)
         W25Q256_Disable();
     }
 
-
     return W25Q256_OK;
 }
 
@@ -115,19 +116,24 @@ uint8_t W25Q256_Enter4ByteAddressMode(void)
 uint8_t W25Q256_Exit4ByteAddressMode(void)
 {
 
-    uint8_t cmd[] = {EXIT_4BYTE_ADDRESS_MODE};
-
+    uint8_t cmd[] = {READ_STATUS_REG3_CMD };
+    uint8_t res = 0;
 
     W25Q256_Enable();
     HAL_SPI_Transmit(&spi_port, cmd, 1, W25Q256_TIMEOUT_VALUE);
+    HAL_SPI_Receive(&spi_port, &res, 1, W25Q256_TIMEOUT_VALUE);
     W25Q256_Disable();
 
-
-
-    while(W25Q256_GetStatus() == W25Q256_BUSY)
+    if((res & 0x01) == 1)
     {
-        ;
+        cmd[0] = ENTER_4BYTE_ADDRESS_MODE;
+        W25Q256_Enable();
+        HAL_SPI_Transmit(&spi_port, cmd, 1, W25Q256_TIMEOUT_VALUE);
+        W25Q256_Disable();
     }
+
+
+    while(W25Q256_GetStatus() == W25Q256_BUSY);
 
     return W25Q256_OK;
 }
@@ -145,70 +151,36 @@ uint8_t W25Q256_WriteEnable(void)
     HAL_SPI_Transmit(&spi_port, cmd, 1, W25Q256_TIMEOUT_VALUE);
     W25Q256_Disable();
 
-    while(W25Q256_GetStatus() == W25Q256_BUSY)
-    {
-        ;
-    }
+    while(W25Q256_GetStatus() == W25Q256_BUSY);
+
     return W25Q256_OK;
 }
 
 
 
-/**
-  * @brief  Read Manufacture/Device ID.
-	* @param  return value address
-  * @retval None
-  */
-HAL_StatusTypeDef W25Q256_Read_ID(uint8_t *ID)
+
+
+
+uint32_t W25Q256_JEDEC_ID(void)
 {
-    uint8_t cmd[] = {READ_ID_CMD, 0x00, 0x00, 0x00};
-    HAL_StatusTypeDef e_rc = HAL_OK;
+    uint8_t cmd[] = {READ_JEDEC_ID_CMD};
+
+    //jedc_id[0]:ManufactureID  jedc_id[1]:Memory Type ID  jedc_id[2]:Capacity ID
+    uint8_t jedc_id_temp[3];
+    uint32_t jedc_id = 0;
 
     W25Q256_Enable();
-    do{
-        e_rc = HAL_SPI_Transmit(&spi_port, cmd, 4, W25Q256_TIMEOUT_VALUE);
-        if(e_rc != HAL_OK)
-            break;
+    HAL_SPI_Transmit(&spi_port, cmd, 1, W25Q256_TIMEOUT_VALUE);
 
-        e_rc = HAL_SPI_Receive(&spi_port, ID, 2, W25Q256_TIMEOUT_VALUE);
-        if(e_rc != HAL_OK)
-            break;
-
-    }while(0);
+    HAL_SPI_Receive(&spi_port, jedc_id_temp, 3, W25Q256_TIMEOUT_VALUE);
     W25Q256_Disable();
 
-    return e_rc;
+    while(W25Q256_GetStatus() == W25Q256_BUSY);
+
+    jedc_id = (jedc_id_temp[0] << 16) | (jedc_id_temp[1] << 8) | jedc_id_temp[2];
+
+    return jedc_id;
 }
-
-
-
-uint8_t W25Q256_Device_ID(void)
-{
-    uint8_t cmd[] = {DEVICE_ID_CMD, 0x00, 0x00, 0x00};
-    uint8_t device_id = 0;
-    uint32_t tickstart = HAL_GetTick();
-
-
-    W25Q256_Enable();
-    HAL_SPI_Transmit(&spi_port, cmd, 4, W25Q256_TIMEOUT_VALUE);
-
-    HAL_SPI_Receive(&spi_port, &device_id, 1, W25Q256_TIMEOUT_VALUE);
-    W25Q256_Disable();
-
-    while(W25Q256_GetStatus() == W25Q256_BUSY)
-    {
-        if((HAL_GetTick()-tickstart) > W25Q256_TIMEOUT_VALUE)
-        {
-            return W25Q256_TIMEOUT;
-        }
-    }
-    return device_id;
-
-}
-
-
-
-
 
 
 
@@ -246,26 +218,26 @@ uint8_t W25Q256_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size)
 }
 
 
+
+
 /**
-  * @brief  Writes an amount of data to the QSPI memory.
-  * @param  pData: Pointer to data to be written
-  * @param  WriteAddr: Write start address
-  * @param  Size: Size of data to write,No more than 256byte.
+  * @brief  页写入(配合Sector Write使用)
+  * @param  pData: Pointer to data to be read
+  * @param  WriteAddr:
+  * @param  Size:
   * @retval QSPI memory status
   */
-uint8_t W25Q256_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
+uint8_t W25Q256_Page_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
 {
-    uint8_t cmd[5];
-
+    //地址大于内存
     if(WriteAddr >= W25Q256FV_FLASH_SIZE)
         return W25Q256_ERROR;
 
+    if(Size >= W25Q256FV_PAGE_SIZE)
+        return W25Q256_ERROR;
 
 
-
-
-
-    /* Configure the command */
+    uint8_t cmd[5];
     cmd[0] = PAGE_PROG_CMD;
     cmd[1] = (uint8_t)((WriteAddr & 0xFF000000) >> 24);
     cmd[2] = (uint8_t)((WriteAddr & 0xFF0000) >> 16);
@@ -273,16 +245,80 @@ uint8_t W25Q256_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
     cmd[4] = (uint8_t)((WriteAddr & 0xFF));
 
     W25Q256_WriteEnable();
-
     /* Enable write operations */
     W25Q256_Enable();
-
     /* Send the command */
     HAL_SPI_Transmit(&spi_port, cmd, 5, W25Q256_TIMEOUT_VALUE);
     /* Transmission of the data */
     HAL_SPI_Transmit(&spi_port, pData, Size, W25Q256_TIMEOUT_VALUE);
-
     W25Q256_Disable();
+    while(W25Q256_GetStatus() == W25Q256_BUSY);
+    return W25Q256_OK;
+}
+
+
+
+
+
+/**
+  * @brief  按照扇区写入数据
+  * @param  pData: Pointer to data to be written
+  * @param  WriteAddr:
+  * @param  Size:
+  * @retval QSPI memory status
+  */
+uint8_t W25Q256_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
+{
+    uint16_t page = Size / W25Q256FV_PAGE_SIZE;
+    uint8_t remain = Size % W25Q256FV_PAGE_SIZE;
+
+    //如果地址对齐
+    if((WriteAddr % W25Q256FV_PAGE_SIZE) == 0)
+    {
+        //如果数据小于一页
+        if(page == 0)
+        {
+            W25Q256_Page_Write(pData, WriteAddr, Size);
+        }
+        else
+        {
+            while(page--)
+            {
+                W25Q256_Page_Write(pData, WriteAddr, W25Q256FV_PAGE_SIZE);
+                pData += W25Q256FV_PAGE_SIZE;
+                WriteAddr += W25Q256FV_PAGE_SIZE;
+            }
+            W25Q256_Page_Write(pData, WriteAddr, remain);
+        }
+
+    }
+    else
+    {
+        uint32_t new_addr = 0;
+        while(new_addr < WriteAddr)
+            new_addr += W25Q256FV_PAGE_SIZE;
+
+
+        if((new_addr-WriteAddr) > Size)
+            W25Q256_Page_Write(pData, WriteAddr, Size);
+        else
+        {
+            //先把开头内存的写了
+            W25Q256_Page_Write(pData, WriteAddr, (new_addr-WriteAddr));
+            pData += (new_addr-WriteAddr);
+
+            page = (Size - (new_addr-WriteAddr)) / W25Q256FV_PAGE_SIZE;
+            remain = (Size - (new_addr-WriteAddr)) % W25Q256FV_PAGE_SIZE;
+
+            while(page--)
+            {
+                W25Q256_Page_Write(pData, new_addr, W25Q256FV_PAGE_SIZE);
+                pData += W25Q256FV_PAGE_SIZE;
+                WriteAddr += W25Q256FV_PAGE_SIZE;
+            }
+            W25Q256_Page_Write(pData, WriteAddr, remain);
+        }
+    }
 
     while(W25Q256_GetStatus() == W25Q256_BUSY);
 
@@ -352,9 +388,6 @@ uint8_t W25Q256_Erase_Block(uint32_t Address)
     /*Deselect the FLASH: Chip Select high */
     W25Q256_Disable();
 
-
-
-
     /* Wait the end of Flash writing */
     while(W25Q256_GetStatus() == W25Q256_BUSY)
     {
@@ -403,7 +436,30 @@ uint8_t W25Q256_Erase_Chip(void)
 }
 
 
+//进入掉电模式
+void W25Q256_PowerDown(void)
+{
+    int8_t cmd[] = {POWER_DOWN_CMD};
+    /* 选择 FLASH: CS 低 */
+    W25Q256_Enable();
+    /* 发送 掉电 命令 */
+    HAL_SPI_Transmit(&spi_port, cmd, 1, W25Q256_TIMEOUT_VALUE);
+    /* 停止信号  FLASH: CS 高 */
+    W25Q256_Disable();
+}
 
+//唤醒
+void W25Q256_WAKEUP(void)
+{
+    int8_t cmd[] = {RELEASE_POWER_DOWN_CMD};
+    /* 选择 FLASH: CS 低 */
+    W25Q256_Enable();
+    /* 发送 掉电 命令 */
+    HAL_SPI_Transmit(&spi_port, cmd, 1, W25Q256_TIMEOUT_VALUE);
+    /* 停止信号  FLASH: CS 高 */
+    W25Q256_Disable();
+    while(W25Q256_GetStatus() == W25Q256_BUSY);
+}
 
 
 /********************************End of File************************************/

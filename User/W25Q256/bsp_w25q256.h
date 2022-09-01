@@ -32,6 +32,15 @@
 #define spi_port    hspi5
 
 
+//#define  sFLASH_ID                          0xEF3015      //W25X16
+//#define  sFLASH_ID                          0xEF4015      //W25Q16
+//#define  sFLASH_ID                          0XEF4017      //W25Q64
+//#define  sFLASH_ID                          0XEF4018      //W25Q128
+#define  sFLASH_ID                            0XEF4019      //W25Q256
+
+
+/* 1 chip = 512 block = 4096 sectors = 65536 pages */
+/* 1 sectors = 16 pages */
 #define W25Q256FV_FLASH_SIZE                  0x2000000 /* 256 MBits => 32MBytes */
 #define W25Q256FV_BLOCK_SIZE                  0x10000   /* 512 sectors of 64KBytes */
 #define W25Q256FV_SECTOR_SIZE                 0x1000    /* 4096 subsectors of 4kBytes */
@@ -103,6 +112,10 @@
 #define ENTER_4BYTE_ADDRESS_MODE             0xB7
 #define EXIT_4BYTE_ADDRESS_MODE              0xE9
 
+#define POWER_DOWN_CMD                       0xB9
+#define RELEASE_POWER_DOWN_CMD               0xAB
+
+
 /* Flag Status Register */
 #define W25Q256FV_FSR_BUSY                    ((uint8_t)0x01)    /*!< busy */
 #define W25Q256FV_FSR_WREN                    ((uint8_t)0x02)    /*!< write enable */
@@ -111,10 +124,14 @@
 
 
 
+
+
 #define W25Q256_OK                          ((uint8_t)0x00)
 #define W25Q256_ERROR                       ((uint8_t)0x01)
 #define W25Q256_BUSY                        ((uint8_t)0x02)
 #define W25Q256_TIMEOUT				        ((uint8_t)0x03)
+
+#define Dummy_Byte                          0xFF
 
 
 #define W25Q256_Enable() 			        HAL_GPIO_WritePin(W25Q256_CE_GPIO_Port, W25Q256_CE_Pin, GPIO_PIN_RESET)
@@ -126,9 +143,12 @@ uint8_t W25Q256_GetStatus(void);
 uint8_t W25Q256_Enter4ByteAddressMode(void);
 uint8_t W25Q256_Exit4ByteAddressMode(void);
 uint8_t W25Q256_WriteEnable(void);
-HAL_StatusTypeDef W25Q256_Read_ID(uint8_t *ID);
 
-uint8_t W25Q256_Device_ID(void);
+
+uint32_t W25Q256_JEDEC_ID(void);
+
+
+uint8_t W25Q256_Page_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size);
 
 
 uint8_t W25Q256_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size);
@@ -137,7 +157,8 @@ uint8_t W25Q256_Erase_Sector(uint32_t Address);
 uint8_t W25Q256_Erase_Block(uint32_t Address);
 uint8_t W25Q256_Erase_Chip(void);
 
-
+void W25Q256_WAKEUP(void);
+void W25Q256_PowerDown(void);
 
 #endif //__BSP_W25Q256_H__
 /********************************End of File************************************/
