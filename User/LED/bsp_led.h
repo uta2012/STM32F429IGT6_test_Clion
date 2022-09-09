@@ -23,9 +23,8 @@
 #define __BSP_LED_H__
 
 #include "stm32f4xx.h"
-#include "gpio.h"
 
-void LED_Init(void);
+
 
 
 

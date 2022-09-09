@@ -23,10 +23,9 @@
 #define __BSP_KEY_H__
 
 #include "stm32f4xx.h"
-#include "gpio.h"
 
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+
 
 #endif //__BSP_KEY_H__
 /********************************End of File************************************/

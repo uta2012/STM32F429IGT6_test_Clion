@@ -58,6 +58,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint32_t pbuff[1024] __attribute__((at(0xD0000000)));
+
 
 /* USER CODE END 0 */
 
@@ -146,6 +148,17 @@ int main(void)
     else
     {
         printf("mount ok!\n");
+    }
+
+
+    for(int i=0; i<1024; i++)
+    {
+        pbuff[i] = i;
+    }
+    for(int i=0; i<1024; i++)
+    {
+        printf("0x%X\n", pbuff[i]);
+        HAL_Delay(10);
     }
 
 

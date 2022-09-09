@@ -30,8 +30,9 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
-#include "main.h"
-#include "delay.h"
+#include <drivers/pin.h>
+#include "drv_common.h"
+
 
 
 #define Input   0
@@ -56,9 +57,9 @@ typedef struct
 
 
 
-#define DHT11_Read_DATA()   HAL_GPIO_ReadPin(DHT11_DATA_GPIO_Port, DHT11_DATA_Pin)
-#define DHT11_DATA_SET()    HAL_GPIO_WritePin(DHT11_DATA_GPIO_Port, DHT11_DATA_Pin, GPIO_PIN_SET)
-#define DHT11_DATA_RESET()  HAL_GPIO_WritePin(DHT11_DATA_GPIO_Port, DHT11_DATA_Pin, GPIO_PIN_RESET)
+#define DHT11_Read_DATA()   rt_pin_read(rt_pin_get("PE.2"))
+#define DHT11_DATA_SET()    rt_pin_write(rt_pin_get("PE.2"), PIN_HIGH)
+#define DHT11_DATA_RESET()  rt_pin_write(rt_pin_get("PE.2"), PIN_LOW)
 void DHT11_Pin_Mode(uint8_t mode);
 uint8_t DHT11_Read_Byte(void);
 uint8_t DHT11_Read_Temperature_and_Humidity(DHT11_DATA_TypeDef *DHT11_data);

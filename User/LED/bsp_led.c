@@ -26,9 +26,5 @@
 /* Includes ------------------------------------------------------------------*/
 #include "bsp_led.h"
 
-void LED_Init(void)
-{
-    HAL_GPIO_WritePin(GPIOH, LED_R_Pin|LED_G_Pin|LED_B_Pin, GPIO_PIN_SET);
-}
 
 /********************************End of File************************************/
