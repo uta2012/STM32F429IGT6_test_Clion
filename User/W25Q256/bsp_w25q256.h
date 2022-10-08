@@ -3,7 +3,10 @@
   * @file    ${FILE_NAME}
   * @author  ${USER}
   * @date    ${TIME} ${DATE}
-  * @brief   None.
+  * @brief   W25Q256JV 有 32M (byte)字节 的大小.
+  *          有 131,072    个(page)页, 每个  页  256 (byte)字节.
+  *          有 512       个(block)块, 每个  块  64K (byte)字节.
+  *          有 8,192  个(sector)扇区, 每个 扇区  4K (byte)字节.
   *
   ******************************************************************************
   * @attention
@@ -19,15 +22,15 @@
 /********************************End of Head************************************/
 
 
-#ifndef __BSP_W25Q256_H__
-#define __BSP_W25Q256_H__
+#ifndef BSP_W25Q256_H__
+#define BSP_W25Q256_H__
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "spi.h"
-
+#include "string.h"
 
 #define spi_port    hspi5
 
@@ -37,6 +40,10 @@
 //#define  sFLASH_ID                          0XEF4017      //W25Q64
 //#define  sFLASH_ID                          0XEF4018      //W25Q128
 #define  sFLASH_ID                            0XEF4019      //W25Q256
+
+/*  W25Q256JV容量  */
+/*    256M-bit  */
+/*      32M    */
 
 
 /* 1 chip = 512 block = 4096 sectors = 65536 pages */
@@ -136,29 +143,46 @@
 
 #define W25Q256_Enable() 			        HAL_GPIO_WritePin(W25Q256_CE_GPIO_Port, W25Q256_CE_Pin, GPIO_PIN_RESET)
 #define W25Q256_Disable() 		            HAL_GPIO_WritePin(W25Q256_CE_GPIO_Port, W25Q256_CE_Pin, GPIO_PIN_SET)
+
+
 uint8_t W25Q256_Init(void);
 uint8_t W25Q256_Reset(void);
 
-uint8_t W25Q256_GetStatus(void);
-uint8_t W25Q256_Enter4ByteAddressMode(void);
-uint8_t W25Q256_Exit4ByteAddressMode(void);
-uint8_t W25Q256_WriteEnable(void);
+uint8_t W25Q256_Read_SR1(void);
+uint8_t W25Q256_Read_SR2(void);
+uint8_t W25Q256_Read_SR3(void);
 
+void W25Q256_Wait_Busy(void);
+
+
+uint8_t W25Q256_Enter_4ByteAddressMode(void);
+uint8_t W25Q256_Exit_4ByteAddressMode(void);
+
+
+
+uint8_t W25Q256_WriteEnable(void);
+uint8_t W25Q256_WriteDisable(void);
 
 uint32_t W25Q256_JEDEC_ID(void);
 
 
-uint8_t W25Q256_Page_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size);
-
-
-uint8_t W25Q256_Read(uint8_t* pData, uint32_t ReadAddr, uint32_t Size);
-uint8_t W25Q256_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size);
-uint8_t W25Q256_Erase_Sector(uint32_t Address);
-uint8_t W25Q256_Erase_Block(uint32_t Address);
+uint8_t W25Q256_Read(uint8_t* pData, uint32_t Read_Addr, uint32_t Read_Size);
+uint8_t W25Q256_Write_Page(uint8_t* pData, uint32_t Page_Addr, uint32_t Size);
+uint8_t W25Q256_Write(uint8_t* pData, uint32_t Write_Addr, uint32_t Write_Size);
+void W25Q256_Write_NoCheck(uint8_t* pBuffer,uint32_t Write_Addr,uint16_t Write_Size);
+uint8_t W25Q256_Erase_Sector(uint32_t Sector_Addr);
+uint8_t W25Q256_Erase_Block(uint32_t Block_Address);
 uint8_t W25Q256_Erase_Chip(void);
 
-void W25Q256_WAKEUP(void);
-void W25Q256_PowerDown(void);
 
-#endif //__BSP_W25Q256_H__
+
+void W25Q256_PowerDown(void);
+void W25Q256_WAKEUP(void);
+
+
+//测试
+void W25Q256_Test(void);
+
+
+#endif //BSP_W25Q256_H__
 /********************************End of File************************************/

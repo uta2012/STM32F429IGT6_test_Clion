@@ -49,11 +49,29 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include User/AT24C0X User/KEY User/LED User/USART1 User/W25Q256 User/Functions User/DHT11 User/FatFs User/OLED_0.96)
+include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include
+                    User/AT24C0X
+                    User/KEY User/LED
+                    User/USART1 User/W25Q256
+                    User/Functions
+
+                    User/FatFs
+                    User/OLED_0.96
+                    )
 
 add_definitions(-DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx)
 
-file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*" "User/AT24C0X/*.*" "User/KEY/*.*" "User/LED/*.*" "User/USART1/*.*" "User/W25Q256/*.*" "User/Functions/*.*" "User/DHT11/*.*" "User/FatFs/*.*" "User/OLED_0.96/*.*")
+file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*"
+                  "User/AT24C0X/*.*"
+                  "User/KEY/*.*"
+                  "User/LED/*.*"
+                  "User/USART1/*.*"
+                  "User/W25Q256/*.*"
+                  "User/Functions/*.*"
+
+                  "User/FatFs/*.*"
+                  "User/OLED_0.96/*.*"
+                  )
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F429IGTX_FLASH.ld)
 

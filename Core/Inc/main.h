@@ -36,7 +36,7 @@ extern "C" {
 #include "bsp_key.h"
 #include "bsp_usart1.h"
 #include "bsp_at24c0x.h"
-#include "bsp_dht11.h"
+//#include "bsp_dht11.h"
 #include "bsp_w25q256.h"
 
 /* USER CODE END Includes */
